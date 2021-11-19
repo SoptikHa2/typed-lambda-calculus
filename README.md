@@ -1,9 +1,16 @@
-# <assignment name>
+# Simply typed lambda calculus type checker
 
-Copy the task assignment description here.
-If the task has optional features then describe which of those features were implemented (We are not going to actively look for any optional features.)
+- Create a program in Haskell, that will type check given lambda calculus
+expression, which may be (partially) annotated by user.
+- Let the type checker infer types, where feasible
+
+## Optional tasks
+
+* [ ] Implement evaluator
+* [ ] Create REPL that will support all features implemented
+* [ ] Implement lambda calculus desugaring (as covered in BI-PPA)
+* [ ] Let the type checker annotate the whole lambda expression
 
 ## Example usage
 
-Describe the usage of your program.
-Attach some example inputs that show the functionality of your program (for every mandatory and optional feature).
+TBA
