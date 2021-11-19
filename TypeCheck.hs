@@ -19,7 +19,7 @@ infer :: Context -> Expression -> Type
 infer ctx (Application e e') =
     case infer ctx e of
         FunctionType t t' -> if check ctx e' t then t'
-                             else error $ "Type does not match. expected " ++ show t ++ " @ " ++ show e
+                             else error $ "Type does not match. expected " ++ show t ++ " @ " ++ show e' ++ " with context " ++ show ctx
         BaseType -> error $ "Expected function type, got base type @ " ++ show e
 -- Var
 infer ctx (Variable var) =
@@ -29,17 +29,15 @@ infer ctx (Variable var) =
 -- Ann
 infer ctx (AnnotatedExpression t e) = if check ctx e t then t
                                         else error $ "annotated type " ++ show t ++ " does not match"
-infer ctx (AnnotatedLambdaAbstraction arg t body) =
+infer ctx (LambdaAbstraction arg t body) =
     let ctx' = (arg, t) : ctx in
         FunctionType t (infer ctx' body)
 
 check :: Context -> Expression -> Type -> Bool
 -- Lam
-check ctx (AnnotatedLambdaAbstraction arg at body) (FunctionType t t')
-    | at == t = check ctx (LambdaAbstraction arg body) (FunctionType t t')
+check ctx (LambdaAbstraction arg at body) (FunctionType t t')
+    | at == t = check ctx' body t'
     | otherwise = False
-check ctx (LambdaAbstraction arg body) (FunctionType t t') =
-    let ctx' = (arg, t) : ctx in
-        check ctx' body t'
+    where ctx' = (arg, t) : ctx
 -- Chk
 check ctx expr t = t == infer ctx expr
