@@ -8,7 +8,7 @@ expression, which may be (partially) annotated by user.
 
 * [x] Implement evaluatoion
 * [ ] Create REPL that will support all features implemented
-* [ ] Implement lambda calculus desugaring (as covered in BI-PPA)
+* [x] Implement lambda calculus desugaring (as covered in BI-PPA)
 * [ ] Let the type checker annotate the whole lambda expression
 
 ## Example usage

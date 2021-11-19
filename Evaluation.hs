@@ -14,5 +14,6 @@ normalize (Application (AnnotatedExpression _ e) apl) rr = normalize (Applicatio
 normalize (Application expr apl) rr = case normalize expr rr of
   LambdaAbstraction param t expr' -> normalize (Application (LambdaAbstraction param t expr') apl) rr
   expr' -> error $ "Left hand of applicatio doesn't contain lambda abstraction even after normalization. Received " ++ show expr'
-normalize (LambdaAbstraction param t expr) rr = LambdaAbstraction param t $ normalize expr rr
+normalize (LambdaAbstraction param t expr) rr = let rr' = (param, Variable param) : rr in
+    LambdaAbstraction param t $ normalize expr rr'
 normalize (AnnotatedExpression _ e) rr = normalize e rr
