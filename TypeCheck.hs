@@ -8,12 +8,6 @@ type Context = [(String, Type)]
 type ExprResult = Either String Expression
 type TypeResult = Either String Type
 
-_typeFromContext :: Context -> String -> Maybe Type
-_typeFromContext [] _ = Nothing
-_typeFromContext ((identifier, t):xs) var
-    | identifier == var = Just t
-    | otherwise = _typeFromContext xs var
-
 infer :: Context -> Expression -> Type
 -- App
 infer ctx (Application e e') =
@@ -23,7 +17,7 @@ infer ctx (Application e e') =
         BaseType -> error $ "Expected function type, got base type @ " ++ show e
 -- Var
 infer ctx (Variable var) =
-    case _typeFromContext ctx var of
+    case lookup var ctx of
         Just t -> t
         Nothing -> error $ "Failed to infer type of variable " ++ show var ++ " without further context. Annotate the variable."
 -- Ann
