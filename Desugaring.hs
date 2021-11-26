@@ -6,13 +6,14 @@ import Type(Type(..))
 
 type DesugarRules = [(String, Expression)]
 
-_desugarRules :: () -> DesugarRules
-_desugarRules _ = [
+
+_desugarRules :: DesugarRules
+_desugarRules = [
         ("T", LambdaAbstraction "t" BaseType (LambdaAbstraction "f" BaseType (Variable "t")))
     ]
 
 desugar :: Expression -> Expression
-desugar (Variable v) = case lookup v (_desugarRules ()) of
+desugar (Variable v) = case lookup v _desugarRules of
     Just expr -> expr
     Nothing -> Variable v
 desugar (Application fnc ap) = Application (desugar fnc) (desugar ap)
