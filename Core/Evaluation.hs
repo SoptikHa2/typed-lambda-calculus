@@ -1,6 +1,6 @@
-module Evaluation where
+module Core.Evaluation where
 
-import Expression ( Expression(..) ) 
+import Core.Expression ( Expression(..) ) 
 
 type ReplacementRules = [(String, Expression)]
 

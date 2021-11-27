@@ -1,7 +1,7 @@
-module TypeCheck where
+module Core.TypeCheck where
 
-import Expression ( Expression(..) )
-import Type ( Type(..) )
+import Core.Expression ( Expression(..) )
+import Core.Type ( Type(..) )
 
 type Context = [(String, Type)]
 

@@ -1,6 +1,6 @@
-module Expression where
+module Core.Expression where
 
-import Type ( Type )
+import Core.Type ( Type )
 
 
 data Expression

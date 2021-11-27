@@ -1,4 +1,4 @@
-module Type where
+module Core.Type where
 
 data Type -- τ
     = BaseType -- α

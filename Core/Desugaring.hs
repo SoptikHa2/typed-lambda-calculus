@@ -1,8 +1,8 @@
-module Desugaring where
+module Core.Desugaring where
 
-import Evaluation (normalize)
-import Expression(Expression(..))
-import Type(Type(..))
+import Core.Evaluation (normalize)
+import Core.Expression(Expression(..))
+import Core.Type(Type(..))
 
 type DesugarRules = [(String, Expression)]
 
