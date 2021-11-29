@@ -4,13 +4,15 @@
 expression, which may be (partially) annotated by user.
 - Let the type checker infer types, where feasible
 
-## Optional tasks
-
-* [x] Implement evaluatoion
-* [ ] Create REPL that will support all features implemented
-* [x] Implement lambda calculus desugaring (as covered in BI-PPA)
-* [ ] Let the type checker annotate the whole lambda expression
-
 ## Example usage
 
-TBA
+`make run`
+
+Type lambda expression (such as `(/tf.t)`. Afterwards, actions can be executed on it.
+It can be desugared `:d`, normalized (and desugared in the process) `:n N`/`:c`, or
+type annotated `:t [CONTEXT]`. See `:h` for additional info.
+
+Common abbreviations such as `Y` for Y-combinator are built in.
+
+Multi-letter variables are possible, but have to be always typed in uppercase, and be
+fully enclosed in an extra pair of parenthesis.
