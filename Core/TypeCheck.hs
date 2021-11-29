@@ -5,27 +5,28 @@ import Core.Type ( Type(..) )
 
 type Context = [(String, Type)]
 
-type ExprResult = Either String Expression
 type TypeResult = Either String Type
 
-infer :: Context -> Expression -> Type
+infer :: Context -> Expression -> TypeResult
 -- App
 infer ctx (Application e e') =
     case infer ctx e of
-        FunctionType t t' -> if check ctx e' t then t'
-                             else error $ "Type does not match. expected " ++ show t ++ " @ " ++ show e' ++ " with context " ++ show ctx
-        BaseType -> error $ "Expected function type, got base type @ " ++ show e
+        Right (FunctionType t t') -> if check ctx e' t then Right t'
+                             else Left $ "Type does not match. expected " ++ show t ++ " @ " ++ show e' ++ " with context " ++ show ctx
+        Right BaseType -> Left $ "Expected function type, got base type @ " ++ show e
+        Left s -> Left s
 -- Var
 infer ctx (Variable var) =
     case lookup var ctx of
-        Just t -> t
-        Nothing -> error $ "Failed to infer type of variable " ++ show var ++ " without further context. Annotate the variable."
+        Just t -> Right t
+        Nothing -> Left $ "Failed to infer type of variable " ++ show var ++ " without further context. Annotate the variable."
 -- Ann
-infer ctx (AnnotatedExpression t e) = if check ctx e t then t
-                                        else error $ "annotated type " ++ show t ++ " does not match"
-infer ctx (LambdaAbstraction arg t body) =
-    let ctx' = (arg, t) : ctx in
-        FunctionType t (infer ctx' body)
+infer ctx (AnnotatedExpression t e) = if check ctx e t then Right t
+                                        else Left $ "annotated type " ++ show t ++ " does not match"
+infer ctx (LambdaAbstraction arg t body) = do
+    let ctx' = (arg, t) : ctx
+    t' <- infer ctx' body
+    Right (FunctionType t t')
 
 check :: Context -> Expression -> Type -> Bool
 -- Lam
@@ -34,4 +35,4 @@ check ctx (LambdaAbstraction arg at body) (FunctionType t t')
     | otherwise = False
     where ctx' = (arg, t) : ctx
 -- Chk
-check ctx expr t = t == infer ctx expr
+check ctx expr t = Right t == infer ctx expr
