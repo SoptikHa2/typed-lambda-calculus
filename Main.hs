@@ -21,7 +21,7 @@ repl :: Maybe Expression -> IO ()
 repl e = do
     -- Print saved expression if there is any
     case e of
-        Just expr -> print expr
+        Just expr -> putStrLn $ printColoredParens expr 0
         _ -> putStrLn "Enter lambda expression or :h for help"
     input <- prompt "λ-> >> "
     let cmd = readUserInput input

@@ -9,7 +9,7 @@ type DesugarRules = [(String, Expression)]
 
 _desugarRules :: DesugarRules
 _desugarRules = [
-        ("Y", convert "(/f.(/x.f(x x)) (/x . f(x x)))"),
+        ("Y", convert "(λ f . (λ x . f (x x)) (λ x . f (x x)))"),
         ("ZERO", convert "(/t:T . (/f:T . t))"),
         ("PRED", convert "(λ x s z . x (λ f g . g (f s)) (λ g . z) (λ u . u))"),
         ("SUC", convert "(λ n s z . s (n s z))"),
