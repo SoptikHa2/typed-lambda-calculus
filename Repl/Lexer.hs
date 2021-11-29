@@ -31,12 +31,12 @@ dot = do
 leftParenthesis :: ReadP Token
 leftParenthesis = do
     char '('
-    return LeftParenthesis 
+    return LeftParenthesis
 
 rightParenthesis :: ReadP Token
 rightParenthesis = do
     char ')'
-    return RightParenthesis 
+    return RightParenthesis
 
 colon :: ReadP Token
 colon = do
