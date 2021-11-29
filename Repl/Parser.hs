@@ -51,6 +51,13 @@ variable = do
     Identifier ident <- identifier
     return (Variable ident)
 
+-- Read one identifier, typed in upper case
+upperCaseVariable :: ReadP Expression
+upperCaseVariable = do
+    skipSpaces
+    Identifier ident <- upperCaseIdentifier
+    return (Variable ident)
+
 -- Construct multiple nested lambda abstractions form one with multiple arguments
 constructLambdaAbstraction :: [(String, Type)] -> Expression -> Expression
 constructLambdaAbstraction ((e, t):xs) body = LambdaAbstraction e t (constructLambdaAbstraction xs body)
@@ -94,7 +101,7 @@ parenthesisedExpression = do
 -- Read any expression
 expression :: ReadP Expression
 expression = do
-    expr <- application <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
+    expr <- upperCaseVariable <++ application <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
 

@@ -2,7 +2,7 @@ module Repl.Lexer where
 
 import Text.ParserCombinators.ReadP
 import Repl.Tokens( Token(..), Command(..) )
-import Data.Char (isLetter, isNumber)
+import Data.Char (isLetter, isNumber, isUpper)
 import GHC.Unicode (isLower)
 import Control.Applicative
 
@@ -36,6 +36,11 @@ identifierChar = satisfy isIdentifierChar
 identifier :: ReadP Token
 identifier = do
     name <- many1 identifierChar
+    return $ Identifier name
+
+upperCaseIdentifier :: ReadP Token
+upperCaseIdentifier = do
+    name <- many1 (satisfy (\c -> isIdentifierChar c && isUpper c))
     return $ Identifier name
 
 singleCharacterIdentifier :: ReadP Token
