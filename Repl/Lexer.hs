@@ -35,8 +35,8 @@ identifierChar = satisfy isIdentifierChar
 
 identifier :: ReadP Token
 identifier = do
-    name <- many1 identifierChar
-    return $ Identifier name
+    name <- identifierChar
+    return $ Identifier [name]
 
 upperCaseIdentifier :: ReadP Token
 upperCaseIdentifier = do

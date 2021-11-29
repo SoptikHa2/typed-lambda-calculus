@@ -51,7 +51,7 @@ variable = do
     Identifier ident <- identifier
     return (Variable ident)
 
--- Read one identifier, typed in upper case
+-- Read one identifier, typed in upper case. This should be prioritized
 upperCaseVariable :: ReadP Expression
 upperCaseVariable = do
     skipSpaces
