@@ -10,3 +10,9 @@ data Token
   | Arrow
   | Tau
   deriving Show
+
+data Command
+  = CheckType
+  | Normalize
+  | Quit
+  deriving Show

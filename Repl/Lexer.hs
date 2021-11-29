@@ -1,10 +1,29 @@
 module Repl.Lexer where
 
 import Text.ParserCombinators.ReadP
-import Repl.Tokens( Token(..) )
+import Repl.Tokens( Token(..), Command(..) )
 import Data.Char (isLetter)
 import GHC.Unicode (isLower)
 import Control.Applicative
+
+commands = [
+    (["t", "type"], CheckType),
+    (["n", "normalize"], Normalize),
+    (["q", "quit"], Quit)
+    ]
+
+tryCommand :: [([String], Command)] -> ReadP Command
+tryCommand [] = pfail
+tryCommand (([], cmd):xs) = tryCommand xs
+tryCommand ((str:xstr, cmd):xs) = do
+    do { string str; return cmd } <|> tryCommand ((xstr, cmd) : xs)
+
+loadCommand :: ReadP Command
+loadCommand = do
+    skipSpaces
+    char ':'
+    skipSpaces
+    tryCommand commands
 
 isLambda :: Char -> Bool
 isLambda char = char `elem` "/\\λ"
