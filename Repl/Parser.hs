@@ -1,11 +1,17 @@
 module Repl.Parser where
 
-import Repl.Tokens (Token(..))
+import Repl.Tokens (Token(..), Command)
 import Repl.Lexer
 import Core.Expression(Expression(..))
 import Core.Type(Type(..))
 import Text.ParserCombinators.ReadP
 import Control.Applicative
+
+data ParserResult
+    = Expression Expression
+    | Command Command
+    | Invalid
+    deriving Show
 
 baseType :: ReadP Type
 baseType = do
@@ -74,3 +80,15 @@ expression = do
     expr <- choice [parenthesisedExpression, variable, application, lambdaAbstraction]
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
+
+command :: ReadP Command
+command = loadCommand
+
+readUserInput :: String -> ParserResult
+readUserInput str = case exprResult of
+    [] -> if null commandResult then Invalid else Command (extract commandResult)
+    _ -> Expression (extract exprResult)
+    where
+        exprResult = readP_to_S expression str
+        commandResult = readP_to_S command str
+        extract = fst . last
