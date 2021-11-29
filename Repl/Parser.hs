@@ -14,12 +14,14 @@ data ParserResult
     | Invalid
     deriving Show
 
+-- Load one single Tau
 baseType :: ReadP Type
 baseType = do
     skipSpaces
     tau
     return BaseType
 
+-- Load type function. HAS TO BE parenthesised (TODO)
 functionType :: ReadP Type
 functionType = do
     skipSpaces
@@ -34,6 +36,7 @@ functionType = do
     rightParenthesis
     return (FunctionType t1 t2)
 
+-- Read type annotation (including the :)
 typeAnnotation :: ReadP Type
 typeAnnotation = do
     skipSpaces
@@ -41,12 +44,14 @@ typeAnnotation = do
     skipSpaces
     functionType <|> baseType
 
+-- Read one identifier
 variable :: ReadP Expression
 variable = do
     skipSpaces
     Identifier ident <- identifier
     return (Variable ident)
 
+-- Parse lambda abstraction, enclosed in parenthesis
 lambdaAbstraction :: ReadP Expression
 lambdaAbstraction = do
     skipSpaces
@@ -61,12 +66,14 @@ lambdaAbstraction = do
     rightParenthesis
     return (LambdaAbstraction param annotatedType body)
 
+-- Parse application. First expression must be enclosed in parenthesis, unless it's a variable
 application :: ReadP Expression
 application = do
     lambda <- lambdaAbstraction <|> variable <|> parenthesisedExpression
     param <- expression
     return (Application lambda param)
 
+-- Read any expression inside one extra set of parenthesis
 parenthesisedExpression :: ReadP Expression
 parenthesisedExpression = do
     skipSpaces
@@ -76,18 +83,21 @@ parenthesisedExpression = do
     rightParenthesis
     return exp
 
+-- Read any expression
 expression :: ReadP Expression
 expression = do
     expr <- choice [parenthesisedExpression, variable, application, lambdaAbstraction]
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
 
+-- Load one more element of typechecking context
 nextContext :: ReadP Context
 nextContext = do
     skipSpaces
     comma
     context
 
+-- Load typechecking context in format [x:t, y:(t->t)]
 context :: ReadP Context
 context = do
     skipSpaces
@@ -96,6 +106,7 @@ context = do
     afterContext <- nextContext <|> return []
     return $ (var, t) : afterContext
 
+-- Load type command with argument
 typeCommand :: ReadP Command
 typeCommand = do
     tryCommand [(["t", "type"], CheckType [])]
@@ -106,6 +117,7 @@ typeCommand = do
     rightSquareParenthesis
     return $ CheckType ctx
 
+-- Load any supported command, as defined in Lexer or here
 command :: ReadP Command
 command = do
     skipSpaces
@@ -113,6 +125,7 @@ command = do
     skipSpaces
     typeCommand <|> tryCommand commands
 
+-- Read expression or command from user (string) input
 readUserInput :: String -> ParserResult
 readUserInput str = case exprResult of
     [] -> if null commandResult then Invalid else Command (extract commandResult)

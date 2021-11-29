@@ -14,6 +14,9 @@ commands = [
     (["h", "?", "help"], Help)
     ]
 
+-- Try to parse any command from the list above.
+-- Note, that this doesn't parse command arguments, and will
+-- use defaults, as specified in list above
 tryCommand :: [([String], Command)] -> ReadP Command
 tryCommand [] = pfail
 tryCommand (([], cmd):xs) = tryCommand xs
@@ -23,8 +26,8 @@ tryCommand ((str:xstr, cmd):xs) = do
 isLambda :: Char -> Bool
 isLambda char = char `elem` "/\\λ"
 
+-- Identifiers are so far lowercase one-char strings
 isIdentifier :: Char -> Bool
--- todo: there has to be a better way
 isIdentifier char = isLetter char && isLower char && not (isLambda char)
 
 identifier :: ReadP Token
@@ -81,7 +84,3 @@ tau :: ReadP Token
 tau = do
     char 't' <|> char 'T' <|> char 'τ'
     return Tau
-
-lexer :: ReadP [Token]
-lexer =
-    sepBy (choice [identifier, lambda, dot, leftParenthesis, rightParenthesis, colon, arrow, tau]) skipSpaces
