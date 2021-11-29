@@ -33,6 +33,10 @@ repl e = do
             Just e' -> repl $ Just $ normalizeResult e'
                 where normalizeResult = flip normalizeTimes n . desugar
             _ -> putStrLn "Cannot normalize invalid input"
+        Command FullNormalize -> case e of
+            Just e' -> repl $ Just $ fullNormalizeResult e'
+                where fullNormalizeResult = normalizeUntilNormal . desugar
+            _ -> putStrLn "Cannot normalize invalid input"
         -- Desugar the expression and save the result
         Command Desugar -> case e of
             Just e' -> repl $ Just $ desugar e'
@@ -48,6 +52,7 @@ repl e = do
         -- :h
         Command Help -> do
             putStrLn ":n(ormalize) N -> desugar and normalize expression (N steps, default=1)"
+            putStrLn ":f(ullNormalize), :c(ontinue) -> normalize expression until it is fully normalized. Might not stop ever!"
             putStrLn ":d(esugar) -> desugar expression"
             putStrLn ":t(ype) [x:t, y:(t->t)] -> type check expression with given variable context"
             putStrLn ":q(uit)"

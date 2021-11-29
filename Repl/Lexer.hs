@@ -9,6 +9,7 @@ import Control.Applicative
 commands = [
     (["t", "type"], CheckType []),
     (["n", "normalize"], Normalize 1),
+    (["f", "fullNormalize", "c", "continue"], FullNormalize),
     (["d", "desugar"], Desugar),
     (["q", "quit"], Quit),
     (["h", "?", "help"], Help)

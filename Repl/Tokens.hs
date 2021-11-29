@@ -19,6 +19,7 @@ data Command
   = CheckType Context
   | Desugar
   | Normalize Integer -- How many steps should be executed at once?
+  | FullNormalize
   | Quit
   | Help
   deriving Show
