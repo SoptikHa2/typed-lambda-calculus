@@ -29,9 +29,9 @@ repl e = do
         -- New expression from user
         Expression ex -> repl $ Just ex
         -- Desugar and then normalize the expression, if there is one
-        Command Normalize -> case e of
+        Command (Normalize n) -> case e of
             Just e' -> repl $ Just $ normalizeResult e'
-                where normalizeResult = flip normalize [] . desugar
+                where normalizeResult = flip normalizeTimes n . desugar
             _ -> putStrLn "Cannot normalize invalid input"
         -- Desugar the expression and save the result
         Command Desugar -> case e of
@@ -47,7 +47,7 @@ repl e = do
         Command Quit -> putStrLn "bye"
         -- :h
         Command Help -> do
-            putStrLn ":n(ormalize) -> desugar and normalize expression"
+            putStrLn ":n(ormalize) N -> desugar and normalize expression (N steps, default=1)"
             putStrLn ":d(esugar) -> desugar expression"
             putStrLn ":t(ype) [x:t, y:(t->t)] -> type check expression with given variable context"
             putStrLn ":q(uit)"

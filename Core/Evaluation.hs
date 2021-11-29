@@ -6,6 +6,16 @@ import Data.Maybe
 type ReplacementRules = [(String, Expression)]
 type ExprResult = Either String Expression
 
+normalizeUntilNormal :: Expression -> Expression
+normalizeUntilNormal expr
+    | not $ isInNormalForm expr = normalizeUntilNormal (normalize expr [])
+    | otherwise = expr
+
+normalizeTimes :: Expression -> Integer -> Expression
+normalizeTimes expr 0 = expr
+normalizeTimes expr n =
+    normalizeTimes (normalize expr []) (n-1)
+
 isInNormalForm :: Expression -> Bool
 isInNormalForm expr =
     case expr of

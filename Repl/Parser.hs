@@ -1,6 +1,6 @@
 module Repl.Parser where
 
-import Repl.Tokens (Token(..), Command (CheckType))
+import Repl.Tokens (Token(..), Command (CheckType, Normalize))
 import Repl.Lexer
 import Core.Expression(Expression(..))
 import Core.Type(Type(..))
@@ -118,8 +118,8 @@ context = do
     return $ (var, t) : afterContext
 
 -- Load type command with argument
-typeCommand :: ReadP Command
-typeCommand = do
+typeCommandWithArgument :: ReadP Command
+typeCommandWithArgument = do
     tryCommand [(["t", "type"], CheckType [])]
     skipSpaces
     leftSquareParenthesis
@@ -128,13 +128,20 @@ typeCommand = do
     rightSquareParenthesis
     return $ CheckType ctx
 
+normalizeCommandWithArgument :: ReadP Command
+normalizeCommandWithArgument = do
+    tryCommand [(["n", "normalize"], Normalize 1)]
+    skipSpaces
+    times <- number
+    return $ Normalize times
+
 -- Load any supported command, as defined in Lexer or here
 command :: ReadP Command
 command = do
     skipSpaces
     colon
     skipSpaces
-    typeCommand <|> tryCommand commands
+    typeCommandWithArgument <|> normalizeCommandWithArgument <|> tryCommand commands
 
 -- Read expression or command from user (string) input
 readUserInput :: String -> ParserResult

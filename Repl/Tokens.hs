@@ -18,7 +18,7 @@ data Token
 data Command
   = CheckType Context
   | Desugar
-  | Normalize
+  | Normalize Integer -- How many steps should be executed at once?
   | Quit
   | Help
   deriving Show

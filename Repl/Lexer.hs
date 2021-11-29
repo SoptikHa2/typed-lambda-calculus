@@ -8,7 +8,7 @@ import Control.Applicative
 
 commands = [
     (["t", "type"], CheckType []),
-    (["n", "normalize"], Normalize),
+    (["n", "normalize"], Normalize 1),
     (["d", "desugar"], Desugar),
     (["q", "quit"], Quit),
     (["h", "?", "help"], Help)
@@ -91,3 +91,8 @@ tau :: ReadP Token
 tau = do
     char 't' <|> char 'T' <|> char 'τ'
     return Tau
+
+number :: ReadP Integer
+number = do
+    str <- munch1 isNumber
+    return $ read str
