@@ -23,16 +23,14 @@ repl e = do
     case e of
         Just expr -> putStrLn $ printColoredParens expr 0
         _ -> putStrLn "Enter lambda expression or :h for help"
-    input <- prompt "λ-> >> "
+    input <- prompt "\x1b[1;92mλ-> >>\x1b[0m "
     let cmd = readUserInput input
     case cmd of
         -- New expression from user
         Expression ex -> repl $ Just ex
         -- Desugar and then normalize the expression, if there is one
         Command Normalize -> case e of
-            Just e' -> case normalizeResult e' of
-                    Left err -> putStrLn err
-                    Right expr -> repl $ Just expr
+            Just e' -> repl $ Just $ normalizeResult e'
                 where normalizeResult = flip normalize [] . desugar
             _ -> putStrLn "Cannot normalize invalid input"
         -- Desugar the expression and save the result

@@ -12,7 +12,7 @@ data Expression
 
 instance Show Expression where
     show (Variable var) = var
-    show (Application a b) = "(" ++ show a ++ " " ++ show b ++ ")"
+    show (Application a b) = show a ++ " " ++ show b
     show (LambdaAbstraction var t body) = "(λ" ++ var ++ ":" ++ show t ++ ". " ++ show body ++ ")"
     show (AnnotatedExpression t expr) = show expr ++ " :: " ++ show t
 
@@ -26,7 +26,7 @@ printInColor c n
 printColoredParens :: Expression -> Integer -> String
 printColoredParens (Variable var) _ = var
 printColoredParens (Application a b) n =
-    printInColor '(' n ++ printColoredParens a (n+1) ++ " " ++ printColoredParens b (n+1) ++ printInColor ')' n
+    printColoredParens a n ++ " " ++ printColoredParens b n
 printColoredParens (LambdaAbstraction var t body) n =
     printInColor '(' n ++ "λ" ++ var ++ ":" ++ show t ++ ". " ++ printColoredParens body (n+1) ++ printInColor ')' n
 printColoredParens (AnnotatedExpression t expr) n =

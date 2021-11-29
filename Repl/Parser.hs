@@ -67,20 +67,17 @@ lambdaParameter = do
 lambdaAbstraction :: ReadP Expression
 lambdaAbstraction = do
     skipSpaces
-    leftParenthesis
     lambda
     parameters <- many1 lambdaParameter
     skipSpaces
     dot
     body <- expression
-    skipSpaces
-    rightParenthesis
     return $ constructLambdaAbstraction parameters body
 
 -- Parse application. First expression must be enclosed in parenthesis, unless it's a variable
 application :: ReadP Expression
 application = do
-    lambda <- lambdaAbstraction <|> variable <|> parenthesisedExpression
+    lambda <- lambdaAbstraction <++ variable <++ parenthesisedExpression
     param <- expression
     return (Application lambda param)
 
@@ -97,7 +94,7 @@ parenthesisedExpression = do
 -- Read any expression
 expression :: ReadP Expression
 expression = do
-    expr <- choice [parenthesisedExpression, application, variable, lambdaAbstraction]
+    expr <- application <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
 
