@@ -26,13 +26,15 @@ tryCommand ((str:xstr, cmd):xs) = do
 isLambda :: Char -> Bool
 isLambda char = char `elem` "/\\λ"
 
--- Identifiers are so far lowercase one-char strings
-isIdentifier :: Char -> Bool
-isIdentifier char = isLetter char && isLower char && not (isLambda char)
+isIdentifierChar :: Char -> Bool
+isIdentifierChar char = isLetter char && not (isLambda char)
+
+identifierChar :: ReadP Char
+identifierChar = satisfy isIdentifierChar
 
 identifier :: ReadP Token
 identifier = do
-    letter <- count 1 (satisfy (\char -> isLetter char && not (isLambda char)))
+    letter <- many1 identifierChar
     return $ Identifier letter
 
 lambda :: ReadP Token

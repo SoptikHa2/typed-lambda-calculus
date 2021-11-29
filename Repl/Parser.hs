@@ -86,9 +86,12 @@ parenthesisedExpression = do
 -- Read any expression
 expression :: ReadP Expression
 expression = do
-    expr <- choice [parenthesisedExpression, variable, application, lambdaAbstraction]
+    expr <- choice [parenthesisedExpression, application, variable, lambdaAbstraction]
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
+
+expressionFromStr :: ReadS Expression
+expressionFromStr = readP_to_S expression
 
 -- Load one more element of typechecking context
 nextContext :: ReadP Context
