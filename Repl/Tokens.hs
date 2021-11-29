@@ -13,6 +13,8 @@ data Token
 
 data Command
   = CheckType
+  | Desugar
   | Normalize
   | Quit
+  | Help
   deriving Show

@@ -9,7 +9,9 @@ import Control.Applicative
 commands = [
     (["t", "type"], CheckType),
     (["n", "normalize"], Normalize),
-    (["q", "quit"], Quit)
+    (["d", "desugar"], Desugar),
+    (["q", "quit"], Quit),
+    (["h", "?", "help"], Help)
     ]
 
 tryCommand :: [([String], Command)] -> ReadP Command
