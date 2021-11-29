@@ -33,8 +33,8 @@ repl e = do
        Command Desugar -> case e of
             Just e' -> repl $ Just $ desugar e'
             _ -> putStrLn "Cannot desugar invalid input"
-       Command CheckType -> case e of
-            Just e' -> case infer [] e' of
+       Command (CheckType ctx) -> case e of
+            Just e' -> case infer ctx e' of
                 Left err -> putStrLn err
                 Right t -> repl $ Just (AnnotatedExpression t e')
             _ -> putStrLn "Cannot check type of invalid input"

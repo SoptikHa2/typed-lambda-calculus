@@ -1,11 +1,12 @@
 module Repl.Parser where
 
-import Repl.Tokens (Token(..), Command)
+import Repl.Tokens (Token(..), Command (CheckType))
 import Repl.Lexer
 import Core.Expression(Expression(..))
 import Core.Type(Type(..))
 import Text.ParserCombinators.ReadP
 import Control.Applicative
+import Core.TypeCheck (Context)
 
 data ParserResult
     = Expression Expression
@@ -16,7 +17,7 @@ data ParserResult
 baseType :: ReadP Type
 baseType = do
     skipSpaces
-    tau 
+    tau
     return BaseType
 
 functionType :: ReadP Type
@@ -30,7 +31,7 @@ functionType = do
     skipSpaces
     t2 <- functionType <|> baseType
     skipSpaces
-    rightParenthesis 
+    rightParenthesis
     return (FunctionType t1 t2)
 
 typeAnnotation :: ReadP Type
@@ -71,7 +72,7 @@ parenthesisedExpression = do
     skipSpaces
     leftParenthesis
     exp <- expression
-    skipSpaces 
+    skipSpaces
     rightParenthesis
     return exp
 
@@ -81,8 +82,36 @@ expression = do
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
 
+nextContext :: ReadP Context
+nextContext = do
+    skipSpaces
+    comma
+    context
+
+context :: ReadP Context
+context = do
+    skipSpaces
+    Identifier var <- identifier
+    t <- typeAnnotation
+    afterContext <- nextContext <|> return []
+    return $ (var, t) : afterContext
+
+typeCommand :: ReadP Command
+typeCommand = do
+    tryCommand [(["t", "type"], CheckType [])]
+    skipSpaces
+    leftSquareParenthesis 
+    ctx <- context
+    skipSpaces
+    rightSquareParenthesis
+    return $ CheckType ctx
+
 command :: ReadP Command
-command = loadCommand
+command = do
+    skipSpaces
+    colon
+    skipSpaces
+    typeCommand <|> tryCommand commands
 
 readUserInput :: String -> ParserResult
 readUserInput str = case exprResult of

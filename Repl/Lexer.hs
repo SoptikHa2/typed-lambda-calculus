@@ -7,7 +7,7 @@ import GHC.Unicode (isLower)
 import Control.Applicative
 
 commands = [
-    (["t", "type"], CheckType),
+    (["t", "type"], CheckType []),
     (["n", "normalize"], Normalize),
     (["d", "desugar"], Desugar),
     (["q", "quit"], Quit),
@@ -19,13 +19,6 @@ tryCommand [] = pfail
 tryCommand (([], cmd):xs) = tryCommand xs
 tryCommand ((str:xstr, cmd):xs) = do
     do { string str; return cmd } <|> tryCommand ((xstr, cmd) : xs)
-
-loadCommand :: ReadP Command
-loadCommand = do
-    skipSpaces
-    char ':'
-    skipSpaces
-    tryCommand commands
 
 isLambda :: Char -> Bool
 isLambda char = char `elem` "/\\λ"
@@ -59,10 +52,25 @@ rightParenthesis = do
     char ')'
     return RightParenthesis
 
+leftSquareParenthesis :: ReadP Token
+leftSquareParenthesis = do
+    char '['
+    return LeftSquareParenthesis
+
+rightSquareParenthesis :: ReadP Token
+rightSquareParenthesis = do
+    char ']'
+    return RightSquareParenthesis
+
 colon :: ReadP Token
 colon = do
     char ':'
     return Colon
+
+comma :: ReadP Token
+comma = do
+    char ','
+    return Comma
 
 arrow :: ReadP Token
 arrow = do
