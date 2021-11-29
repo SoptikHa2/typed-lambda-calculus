@@ -51,20 +51,30 @@ variable = do
     Identifier ident <- identifier
     return (Variable ident)
 
--- Parse lambda abstraction, enclosed in parenthesis
+-- Construct multiple nested lambda abstractions form one with multiple arguments
+constructLambdaAbstraction :: [(Expression, Type)] -> Expression -> Expression
+constructLambdaAbstraction ((Variable e, t):xs) body = LambdaAbstraction e t (constructLambdaAbstraction xs body)
+constructLambdaAbstraction _ body = body
+
+lambdaParameter :: ReadP (Expression, Type)
+lambdaParameter = do
+    exp <- variable
+    t <- typeAnnotation <|> return Unspecified
+    return (exp, t)
+
+-- Parse lambda abstraction, enclosed in parenthesis. Allows multiple arguments.
 lambdaAbstraction :: ReadP Expression
 lambdaAbstraction = do
     skipSpaces
     leftParenthesis
     lambda
-    Identifier param <- identifier
-    annotatedType <- typeAnnotation <|> return Unspecified
+    parameters <- many1 lambdaParameter
     skipSpaces
     dot
     body <- expression
     skipSpaces
     rightParenthesis
-    return (LambdaAbstraction param annotatedType body)
+    return $ constructLambdaAbstraction parameters body
 
 -- Parse application. First expression must be enclosed in parenthesis, unless it's a variable
 application :: ReadP Expression
@@ -114,7 +124,7 @@ typeCommand :: ReadP Command
 typeCommand = do
     tryCommand [(["t", "type"], CheckType [])]
     skipSpaces
-    leftSquareParenthesis 
+    leftSquareParenthesis
     ctx <- context
     skipSpaces
     rightSquareParenthesis
