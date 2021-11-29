@@ -20,7 +20,7 @@ normalize (Application (AnnotatedExpression _ e) apl) rr = do
 -- When application first parameter is not lambda abstraction, try to normalize it, or fail
 normalize (Application expr apl) rr = case normalize expr rr of
   Right (LambdaAbstraction param t expr') -> normalize (Application (LambdaAbstraction param t expr') apl) rr
-  Right expr' -> Left $ "Left hand of applicatio doesn't contain lambda abstraction even after normalization. Received " ++ show expr'
+  Right expr' -> Left $ "Left hand of application doesn't contain lambda abstraction even after normalization. Received " ++ show expr'
   Left s -> Left s
 -- Normalize lambda abstraction's body
 normalize (LambdaAbstraction param t expr) rr = do

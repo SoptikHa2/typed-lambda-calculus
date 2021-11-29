@@ -2,7 +2,7 @@ module Repl.Lexer where
 
 import Text.ParserCombinators.ReadP
 import Repl.Tokens( Token(..), Command(..) )
-import Data.Char (isLetter)
+import Data.Char (isLetter, isNumber)
 import GHC.Unicode (isLower)
 import Control.Applicative
 
@@ -27,15 +27,20 @@ isLambda :: Char -> Bool
 isLambda char = char `elem` "/\\λ"
 
 isIdentifierChar :: Char -> Bool
-isIdentifierChar char = isLetter char && not (isLambda char)
+isIdentifierChar char = (isLetter char || isNumber char) && not (isLambda char)
 
 identifierChar :: ReadP Char
 identifierChar = satisfy isIdentifierChar
 
 identifier :: ReadP Token
 identifier = do
-    letter <- many1 identifierChar
-    return $ Identifier letter
+    name <- many1 identifierChar
+    return $ Identifier name
+
+singleCharacterIdentifier :: ReadP Token
+singleCharacterIdentifier = do
+    name <- satisfy isIdentifierChar
+    return $ Identifier [name]
 
 lambda :: ReadP Token
 lambda = do

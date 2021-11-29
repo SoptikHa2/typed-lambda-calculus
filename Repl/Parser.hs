@@ -52,15 +52,16 @@ variable = do
     return (Variable ident)
 
 -- Construct multiple nested lambda abstractions form one with multiple arguments
-constructLambdaAbstraction :: [(Expression, Type)] -> Expression -> Expression
-constructLambdaAbstraction ((Variable e, t):xs) body = LambdaAbstraction e t (constructLambdaAbstraction xs body)
+constructLambdaAbstraction :: [(String, Type)] -> Expression -> Expression
+constructLambdaAbstraction ((e, t):xs) body = LambdaAbstraction e t (constructLambdaAbstraction xs body)
 constructLambdaAbstraction _ body = body
 
-lambdaParameter :: ReadP (Expression, Type)
+lambdaParameter :: ReadP (String, Type)
 lambdaParameter = do
-    exp <- variable
+    skipSpaces
+    Identifier i <- singleCharacterIdentifier 
     t <- typeAnnotation <|> return Unspecified
-    return (exp, t)
+    return (i, t)
 
 -- Parse lambda abstraction, enclosed in parenthesis. Allows multiple arguments.
 lambdaAbstraction :: ReadP Expression
