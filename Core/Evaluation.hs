@@ -28,7 +28,8 @@ normalize :: Expression -> ReplacementRules -> Expression
 normalize expr rr =
     case expr of
         Variable arg -> fromMaybe expr (lookup arg rr)
-        LambdaAbstraction arg t body -> LambdaAbstraction arg t (normalize body rr)
+        LambdaAbstraction arg t body -> LambdaAbstraction arg t (normalize body rr')
+            where rr' = (arg, Variable arg) : rr
         Application left right ->
             case left of
                 LambdaAbstraction v _ body ->
