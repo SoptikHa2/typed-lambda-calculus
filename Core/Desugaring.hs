@@ -29,7 +29,7 @@ _desugarRules = [
         ("LT", convert "(λ m n . GT n m )"),
         ("GE", convert "(λ m n . ZERO (MINUS n m))"),
         ("LE", convert "(λ m n . ZERO (MINUS m n))"),
-        ("0", convert "F"),
+        ("0", convert "(λ s z . z)"),
         ("1", convert "SUC 0")
     ]
     where convert s = fst . last $ expressionFromStr s
