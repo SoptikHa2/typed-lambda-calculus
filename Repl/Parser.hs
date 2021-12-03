@@ -14,27 +14,25 @@ data ParserResult
     | Invalid
     deriving Show
 
--- Load one single Tau
-baseType :: ReadP Type
-baseType = do
+readBaseType :: ReadP Type
+readBaseType = do
     skipSpaces
     tau
     return BaseType
 
--- Load type function. HAS TO BE parenthesised (TODO)
-functionType :: ReadP Type
-functionType = do
+parenthesisedType :: ReadP Type
+parenthesisedType = do
     skipSpaces
     leftParenthesis
-    skipSpaces
-    t1 <- functionType <|> baseType
-    skipSpaces
-    arrow
-    skipSpaces
-    t2 <- functionType <|> baseType
+    t <- getType
     skipSpaces
     rightParenthesis
-    return (FunctionType t1 t2)
+    return t
+
+getType :: ReadP Type
+getType = do
+    vals <- sepBy1 (parenthesisedType <|> readBaseType) arrow
+    return $ foldr FunctionType (last vals) (init vals)
 
 -- Read type annotation (including the :)
 typeAnnotation :: ReadP Type
@@ -42,7 +40,7 @@ typeAnnotation = do
     skipSpaces
     colon
     skipSpaces
-    functionType <|> baseType
+    getType
 
 -- Read one identifier
 variable :: ReadP Expression
@@ -83,10 +81,7 @@ lambdaAbstraction = do
 
 -- Parse application. First expression must be enclosed in parenthesis, unless it's a variable
 application :: ReadP Expression
-application = do
-    lambda <- lambdaAbstraction <++ variable <++ parenthesisedExpression
-    param <- expression
-    return (Application lambda param)
+application = chainl1 (parenthesisedExpression <|> lambdaAbstraction <|> variable) (return Application)
 
 -- Read any expression inside one extra set of parenthesis
 parenthesisedExpression :: ReadP Expression
