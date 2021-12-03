@@ -46,14 +46,7 @@ typeAnnotation = do
 variable :: ReadP Expression
 variable = do
     skipSpaces
-    Identifier ident <- identifier
-    return (Variable ident)
-
--- Read one identifier, typed in upper case. This should be prioritized
-upperCaseVariable :: ReadP Expression
-upperCaseVariable = do
-    skipSpaces
-    Identifier ident <- upperCaseIdentifier
+    Identifier ident <- upperCaseIdentifier <++ identifier
     return (Variable ident)
 
 -- Construct multiple nested lambda abstractions form one with multiple arguments
@@ -96,7 +89,7 @@ parenthesisedExpression = do
 -- Read any expression
 expression :: ReadP Expression
 expression = do
-    expr <- upperCaseVariable <++ application <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
+    expr <- application <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
 
