@@ -12,8 +12,7 @@ import Core.Evaluation
 import Core.Desugaring
 
 main :: IO ()
-main = do
-    repl Nothing
+main = repl Nothing
 
 -- Print repl to screen, with given expression, if there is any.
 -- If there is any expression given, all commands executed will be ran on it.
