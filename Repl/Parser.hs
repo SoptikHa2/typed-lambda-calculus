@@ -32,13 +32,14 @@ parenthesisedType = do
 getType :: ReadP Type
 getType = do
     vals <- sepBy1 (parenthesisedType <|> readBaseType) arrow
-    return $ foldr FunctionType (last vals) (init vals)
+    return $ foldr1 FunctionType vals
 
 -- Read type annotation (including the :)
 typeAnnotation :: ReadP Type
 typeAnnotation = do
     skipSpaces
     colon
+    Text.ParserCombinators.ReadP.optional colon
     skipSpaces
     getType
 
@@ -57,7 +58,7 @@ constructLambdaAbstraction _ body = body
 lambdaParameter :: ReadP (String, Type)
 lambdaParameter = do
     skipSpaces
-    Identifier i <- singleCharacterIdentifier 
+    Identifier i <- singleCharacterIdentifier
     t <- typeAnnotation <|> return Unspecified
     return (i, t)
 
