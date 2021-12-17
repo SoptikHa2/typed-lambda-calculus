@@ -10,7 +10,7 @@ type DesugarRules = [(String, Expression)]
 _desugarRules :: DesugarRules
 _desugarRules = [
         ("Y", convert "(λ f . (λ x . f (x x)) (λ x . f (x x)))"),
-        ("ZERO", convert "(/t:T . (/f:T . t))"),
+        ("ZERO", convert "(λ n . n (λ x . (λ t f . f)) (λ t f . t))"),
         ("PRED", convert "(λ x s z . x (λ f g . g (f s)) (λ g . z) (λ u . u))"),
         ("SUC", convert "(λ n s z . s (n s z))"),
         ("AND", convert "(λ x y . x y x)"),
@@ -30,7 +30,7 @@ _desugarRules = [
         ("GE", convert "(λ m n . ZERO (MINUS n m))"),
         ("LE", convert "(λ m n . ZERO (MINUS m n))"),
         ("0", convert "(λ s z . z)"),
-        ("1", convert "SUC 0")
+        ("1", convert "(SUC) 0")
     ]
     where convert s = fst . last $ expressionFromStr s
 

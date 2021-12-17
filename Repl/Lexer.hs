@@ -40,7 +40,7 @@ identifier = do
 
 upperCaseIdentifier :: ReadP Token
 upperCaseIdentifier = do
-    name <- many1 (satisfy (\c -> isIdentifierChar c && isUpper c))
+    name <- munch1 (\c -> isIdentifierChar c && isUpper c)
     return $ Identifier name
 
 singleCharacterIdentifier :: ReadP Token

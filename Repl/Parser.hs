@@ -81,7 +81,7 @@ lambdaAbstraction = do
 
 -- Parse application. First expression must be enclosed in parenthesis, unless it's a variable
 application :: ReadP Expression
-application = chainl1 (parenthesisedExpression <|> lambdaAbstraction <|> variable) (return Application)
+application = chainl1 (upperCaseVariable <++ parenthesisedExpression <++ lambdaAbstraction <++ variable) (return Application)
 
 -- Read any expression inside one extra set of parenthesis
 parenthesisedExpression :: ReadP Expression
@@ -96,7 +96,7 @@ parenthesisedExpression = do
 -- Read any expression
 expression :: ReadP Expression
 expression = do
-    expr <- upperCaseVariable <++ application <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
+    expr <- application <++ upperCaseVariable <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
 
