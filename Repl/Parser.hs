@@ -32,13 +32,14 @@ parenthesisedType = do
 getType :: ReadP Type
 getType = do
     vals <- sepBy1 (parenthesisedType <|> readBaseType) arrow
-    return $ foldr FunctionType (last vals) (init vals)
+    return $ foldr1 FunctionType vals
 
 -- Read type annotation (including the :)
 typeAnnotation :: ReadP Type
 typeAnnotation = do
     skipSpaces
     colon
+    Text.ParserCombinators.ReadP.optional colon
     skipSpaces
     getType
 
@@ -46,14 +47,7 @@ typeAnnotation = do
 variable :: ReadP Expression
 variable = do
     skipSpaces
-    Identifier ident <- identifier
-    return (Variable ident)
-
--- Read one identifier, typed in upper case. This should be prioritized
-upperCaseVariable :: ReadP Expression
-upperCaseVariable = do
-    skipSpaces
-    Identifier ident <- upperCaseIdentifier
+    Identifier ident <- upperCaseIdentifier <++ identifier
     return (Variable ident)
 
 -- Construct multiple nested lambda abstractions form one with multiple arguments
@@ -64,7 +58,7 @@ constructLambdaAbstraction _ body = body
 lambdaParameter :: ReadP (String, Type)
 lambdaParameter = do
     skipSpaces
-    Identifier i <- singleCharacterIdentifier 
+    Identifier i <- singleCharacterIdentifier
     t <- typeAnnotation <|> return Unspecified
     return (i, t)
 
@@ -81,7 +75,7 @@ lambdaAbstraction = do
 
 -- Parse application. First expression must be enclosed in parenthesis, unless it's a variable
 application :: ReadP Expression
-application = chainl1 (upperCaseVariable <++ parenthesisedExpression <++ lambdaAbstraction <++ variable) (return Application)
+application = chainl1 (parenthesisedExpression <++ lambdaAbstraction <++ variable) (return Application)
 
 -- Read any expression inside one extra set of parenthesis
 parenthesisedExpression :: ReadP Expression
@@ -96,7 +90,7 @@ parenthesisedExpression = do
 -- Read any expression
 expression :: ReadP Expression
 expression = do
-    expr <- application <++ upperCaseVariable <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
+    expr <- application <++ lambdaAbstraction <++ variable <++ parenthesisedExpression
     t <- typeAnnotation <|> return Unspecified
     if t == Unspecified then return expr else return (AnnotatedExpression t expr)
 

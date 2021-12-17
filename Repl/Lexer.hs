@@ -28,7 +28,10 @@ isLambda :: Char -> Bool
 isLambda char = char `elem` "/\\λ"
 
 isIdentifierChar :: Char -> Bool
-isIdentifierChar char = (isLetter char || isNumber char) && not (isLambda char)
+isIdentifierChar char = isLetter char && isLower char && not (isLambda char)
+
+isUpperIdentifierChar :: Char -> Bool
+isUpperIdentifierChar char = ((isLetter char && isUpper char) || isNumber char) && not (isLambda char)
 
 identifierChar :: ReadP Char
 identifierChar = satisfy isIdentifierChar
@@ -40,7 +43,7 @@ identifier = do
 
 upperCaseIdentifier :: ReadP Token
 upperCaseIdentifier = do
-    name <- munch1 (\c -> isIdentifierChar c && isUpper c)
+    name <- many1 (satisfy isUpperIdentifierChar)
     return $ Identifier name
 
 singleCharacterIdentifier :: ReadP Token
