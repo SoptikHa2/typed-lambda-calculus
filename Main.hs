@@ -48,12 +48,17 @@ repl e = do
             _ -> putStrLn "Cannot check type of invalid input"
         -- :q
         Command Quit -> putStrLn "bye"
+        -- :a
+        Command (Apply expr) -> case e of
+            Just e' -> repl $ Just $ Application e' expr
+            _ -> putStrLn "Cannot apply expression to nothing"
         -- :h
         Command Help -> do
             putStrLn ":n(ormalize) N -> desugar and normalize expression (N steps, default=1)"
             putStrLn ":f(ullNormalize), :c(ontinue) -> normalize expression until it is fully normalized. Might not stop ever!"
             putStrLn ":d(esugar) -> desugar expression"
             putStrLn ":t(ype) [x:t, y:(t->t)] -> type check expression with given variable context"
+            putStrLn ":a(pply) <EXPRESSION> -> apply given expression to current one"
             putStrLn ":q(uit)"
         Invalid -> putStrLn "Failed to parse input"
     repl e

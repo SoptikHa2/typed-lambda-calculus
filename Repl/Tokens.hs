@@ -1,5 +1,6 @@
 module Repl.Tokens where
 import Core.TypeCheck (Context)
+import Core.Expression (Expression)
 
 data Token
   = Identifier String
@@ -22,4 +23,5 @@ data Command
   | FullNormalize
   | Quit
   | Help
+  | Apply Expression -- Apply expression given as argument
   deriving Show
