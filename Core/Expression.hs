@@ -18,7 +18,7 @@ instance Show Expression where
 
 printInColor :: Char -> Integer -> String
 printInColor c 0 = [c]
-printInColor c n = "\x1b[3" ++ show (n `mod` 8) ++ "m" ++ [c] ++ "\x1b[0m"
+printInColor c n = "\x1b[3" ++ show (n `mod` 7 + 1) ++ "m" ++ [c] ++ "\x1b[0m"
 
 -- Print expression, but in a colored way, depending on nest level. Starts at zero.
 printColoredParens :: Expression -> Integer -> String
