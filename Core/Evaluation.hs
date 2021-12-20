@@ -1,17 +1,8 @@
 module Core.Evaluation where
 
--- Linguistic note:
--- ┌───────────────┐
--- │ Zdragonlordit │
--- └───────────────┘
--- - dobrovolně si ztížit/zkomplikovat úkol/semestrálku/… tak, že by se z toho normální člověk pos*al
--- - splnit úkol „Vyrob a zapal ohniště“ (za předpokladu že je k dispozici vše co je potřeba pro výrobu
---   ohniště a zápalky) postavením malého osobního automobilu, který nikdy nepojede, a prohlášením ho za daleko lepší ohniště
--- - místo programu, který má vypsat celá čísla od jedné do pěti, sestavit menšího konkurenta mathematiky a pomocí něj dokázat,
---   že 1, 2, 3, 4 a 5 jsou opravdu celá čísla. Pokud postup u čísla čtyři selže, přesto toto řešení obhajovat jako jediný správný postup
-
 import Core.Expression ( Expression(..) )
 import Data.Maybe
+import Debug.Trace
 
 type ReplacementRules = [(String, Expression)]
 type ExprResult = Either String Expression
@@ -19,14 +10,14 @@ type ExprResult = Either String Expression
 -- Normalize expression, until it is in normal form
 normalizeUntilNormal :: Expression -> Expression
 normalizeUntilNormal expr
-    | not $ isInNormalForm expr = normalizeUntilNormal (normalize expr [])
+    | not $ isInNormalForm expr = normalizeUntilNormal (normalize expr)
     | otherwise = expr
 
 -- Execute normalization step multiple times
 normalizeTimes :: Expression -> Integer -> Expression
 normalizeTimes expr 0 = expr
 normalizeTimes expr n =
-    normalizeTimes (normalize expr []) (n-1)
+    normalizeTimes (normalize expr) (n-1)
 
 -- Is in normal form?
 --  Expression is in normal form, iff
@@ -41,71 +32,69 @@ isInNormalForm expr =
         Application left right -> isInNormalForm left && isInNormalForm right
         _ -> True
 
--- Rename all free variables and lambda arguments using gien replacement rules
+-- Get names of all free variables in given expression
+getFreeVariables :: Expression -> [String]
+getFreeVariables expr = getFreeVariables' expr []
+  where getFreeVariables' :: Expression -> [String] -> [String]
+        getFreeVariables' (Variable x) nops
+          | elem x nops = []
+          | otherwise   = [x]
+        getFreeVariables' (LambdaAbstraction arg _ body) nops =
+            getFreeVariables' body (arg : nops)
+        getFreeVariables' (Application left right) nops =
+            getFreeVariables' left nops ++ getFreeVariables' right nops
+        getFreeVariables' (AnnotatedExpression _ aexp) nops =
+            getFreeVariables' aexp nops
+
+-- Rename all free variables using given replacement rules
 renameFreeVariables :: Expression -> ReplacementRules -> Expression
 renameFreeVariables (Variable var) rr =
     case lookup var rr of
         Just expr -> expr
         Nothing -> Variable var
 renameFreeVariables (LambdaAbstraction arg t body) rr =
-    case lookup arg rr of
-        Just (Variable arg') -> (LambdaAbstraction arg' t (renameFreeVariables body rr))
-        Nothing -> LambdaAbstraction arg t (renameFreeVariables body rr)
+    LambdaAbstraction arg t (renameFreeVariables body rr')
+        where rr' = (arg, Variable arg) : rr -- shadowing
 renameFreeVariables (Application left right) rr =
     Application (renameFreeVariables left rr) (renameFreeVariables right rr)
 renameFreeVariables (AnnotatedExpression t expr) rr =
     AnnotatedExpression t (renameFreeVariables expr rr)
 
--- Returns true when expression contains string in any form, be it
--- expression body or function argument
-containsFreeVariable :: Expression -> String -> Bool
-containsFreeVariable (Variable var) query
-    | var == query = True
-    | otherwise    = False
-containsFreeVariable (LambdaAbstraction arg _ body) query
-    | arg == query = False
-    | otherwise    = containsFreeVariable body query
-containsFreeVariable (Application left right) query =
-    containsFreeVariable left query || containsFreeVariable right query
-containsFreeVariable (AnnotatedExpression _ expr) query =
-    containsFreeVariable expr query
+-- Alpha-convert given expression, if needed. Variable names that the expression might collide with
+-- is provided as array of strings.
+alphaConversion :: Expression -> [String] -> Expression
+alphaConversion expr rules =
+    case expr of
+        LambdaAbstraction arg t body -> 
+            if elem arg rules then
+                alphaConversion (LambdaAbstraction (genNewName arg) t (renameFreeVariables body [(arg, Variable (genNewName arg))])) rules
+            else 
+                LambdaAbstraction arg t (alphaConversion body rules)
+        Application left right -> Application (alphaConversion left rules) (alphaConversion right rules)
+        AnnotatedExpression t aexp -> AnnotatedExpression t (alphaConversion aexp rules)
+        _ -> expr
+    where genNewName = (\arg -> '\'' : arg)
 
--- Returns all names that might potentially cause name conflict, be it
--- expression body or function argument
-getConflictingNames :: Expression -> [String]
-getConflictingNames (Variable var) = [var]
-getConflictingNames (Application left right) = getConflictingNames left ++ getConflictingNames right
-getConflictingNames (LambdaAbstraction arg _ body) = arg : getConflictingNames body
-getConflictingNames (AnnotatedExpression _ expr) = getConflictingNames expr
-
--- Alpha-convert lambda abstraction (Left) until there are no collisions with Right
-alphaConversion :: Expression -> Expression -> Expression
-alphaConversion (LambdaAbstraction arg t body) right
-    | any (\var -> containsFreeVariable right var) conflictingNames =
-        alphaConversion (LambdaAbstraction (newArg arg) t (renameFreeVariables body rr)) right
-    | otherwise = (LambdaAbstraction arg t body)
-    where newArg = (\arg -> arg ++ "'")
-          conflictingNames = arg : getConflictingNames body
-          rr = map (\x -> (x, Variable (newArg x))) conflictingNames
-alphaConversion expr right = error "Alpha conversion received non-lambda-abstraction."
-
--- Execute one stpe of normalization using set of replacement rules
-normalize :: Expression -> ReplacementRules -> Expression
-normalize expr rr =
+-- Beta-convert expression using some replacement rules
+betaConversion :: Expression -> ReplacementRules -> Expression
+betaConversion expr rr =
     case expr of
         Variable arg -> fromMaybe expr (lookup arg rr)
-        LambdaAbstraction arg t body -> LambdaAbstraction arg t (normalize body rr')
-            where rr' = (arg, Variable arg) : rr
+        LambdaAbstraction arg t body ->
+            LambdaAbstraction arg t (betaConversion body ((arg, Variable arg) : rr))
+        Application left right ->
+            Application (betaConversion left rr) (betaConversion right rr)
+        AnnotatedExpression _ aexp -> normalize aexp
+
+-- Execute one stpe of normalization using set of replacement rules
+normalize :: Expression -> Expression
+normalize expr =
+    case expr of
+        LambdaAbstraction arg t body -> LambdaAbstraction arg t (normalize body)
         Application left right ->
             case left of
-                -- Application
-                LambdaAbstraction v _ body ->
-                    normalize alphaConvertedBody rr'
-                    where --rr' = (v, normalize right rr) : rr
-                          alphaConvertedExpr = alphaConversion left right
-                          alphaConvertedBody = case alphaConvertedExpr of
-                            LambdaAbstraction _ _ body -> body
-                          rr' = case alphaConvertedExpr of
-                            LambdaAbstraction v' _ _ -> (v', normalize right rr) : rr
-                _ -> Application (normalize left rr) (normalize right rr)
-        AnnotatedExpression t expr -> normalize expr rr
+                (LambdaAbstraction arg t body) ->
+                    betaConversion (alphaConversion body (getFreeVariables right)) [(arg, right)]
+                _ -> Application (normalize left) (normalize right)
+        AnnotatedExpression _ aexp -> normalize aexp
+        _ -> expr

@@ -35,6 +35,7 @@ _desugarRules = [
     ]
     where convert = fst . last . expressionFromStr
 
+-- Generate given number from string of SUC calls and a zero
 generateNumFromSUC :: Int -> Expression
 generateNumFromSUC 0 = fst . last . expressionFromStr $ "0"
 generateNumFromSUC n  = Application (convert "SUC") (generateNumFromSUC (n-1))
@@ -46,7 +47,6 @@ desugarNumber str = generateNumFromSUC <$> (readMaybe str)
 desugar :: Expression -> Expression
 -- Variable stays the same, unless it's overriden by desugar rules
 desugar (Variable v) = case (lookup v _desugarRules) <|> (desugarNumber v) of
-
     Just expr -> desugar expr
     Nothing -> Variable v
 -- Application, LambdaAbstraction and AnnotatedExpressions stay the same
